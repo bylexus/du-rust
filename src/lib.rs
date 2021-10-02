@@ -5,6 +5,12 @@ use std::path::PathBuf;
 
 pub type FSItemList = Vec<FSItem>;
 
+#[derive(Copy, Clone)]
+pub enum OutputType {
+	Summary,
+	Full
+}
+
 #[derive(Debug)]
 pub struct FileInfo {
 	pub path: PathBuf,
@@ -23,7 +29,7 @@ impl FileInfo {
 pub struct DirInfo {
 	pub path: PathBuf,
 	pub size: u64,
-	pub childs: Vec<FSItem>,
+	pub childs: FSItemList,
 }
 
 impl DirInfo {

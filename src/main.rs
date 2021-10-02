@@ -4,6 +4,7 @@ use du_rust::DirInfo;
 use du_rust::FSItem;
 use du_rust::FSItemList;
 use du_rust::FileInfo;
+use du_rust::OutputType;
 use std::env;
 use std::fs;
 use std::io;
@@ -59,7 +60,7 @@ fn examine_path(path: &PathBuf) -> Result<FSItem, io::Error> {
 
 fn examine_paths(pl: &PathList) -> FSItemList {
     let mut list = FSItemList::new();
-    for path in pl {
+    for path in pl.iter() {
         let res = examine_path(path);
         if let Ok(item) = res {
             list.push(item);
@@ -68,8 +69,8 @@ fn examine_paths(pl: &PathList) -> FSItemList {
     return list;
 }
 
-fn output_items(items: &FSItemList) {
-    for i in items {
+fn output_items(items: &FSItemList, output_type: OutputType) {
+    for i in items.iter() {
         let path = match &i {
             FSItem::File(f) => f.path.to_str().unwrap_or("ERROR"),
             FSItem::Dir(d) => d.path.to_str().unwrap_or("ERROR"),
@@ -79,6 +80,11 @@ fn output_items(items: &FSItemList) {
             FSItem::Dir(d) => d.size,
         };
         println!("{} {}", size, path);
+        if matches!(output_type, OutputType::Full) {
+            if let FSItem::Dir(d) = &i {
+                output_items(&d.childs, output_type)
+            }
+        }
     }
 }
 
@@ -88,9 +94,5 @@ fn main() {
     let c = Config::new(&fileargs);
 
     let path_infos = examine_paths(&c.filenames);
-    output_items(&path_infos);
-
-    return;
-
-    // let what = fs::read_dir(Path::new("/Users/alex/dev")).expect("Moo");
+    output_items(&path_infos, OutputType::Full);
 }
